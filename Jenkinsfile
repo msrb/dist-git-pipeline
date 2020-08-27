@@ -11,7 +11,7 @@ def pipelineMetadata = [
     testCategory: 'functional',
     testType: 'tier0-tf',
     maintainer: 'Fedora CI',
-    docs: 'https://github.com/fedora-ci/rpmdeplint-pipeline',
+    docs: 'https://github.com/fedora-ci/dist-git-pipeline',
     contact: [
         irc: '#fedora-ci',
         email: 'ci@lists.fedoraproject.org'

@@ -59,8 +59,8 @@ pipeline {
                     }
 
                     // FIXME: normally we would use "branch: env.BRANCH_NAME" here
-                    // and it would nicely translate to "rawhide" for master, etc.
-                    // However, since we are running from "tmt" brach now (Bruno is working on master branch),
+                    // and it would nicely translate to master (for rawhide), etc.
+                    // However, since we are running from non-standard "tmt" branch now (Bruno is working on the master branch),
                     // we simply hardcode "master" branch here.
 
                     repoUrl = getRepoUrlFromTaskId("${getIdFromArtifactId(artifactId: artifactId)}")

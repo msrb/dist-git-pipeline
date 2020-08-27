@@ -84,7 +84,7 @@ pipeline {
                 script {
                     def artifacts = []
                     getIdFromArtifactId(artifactId: artifactId, additionalArtifactIds: additionalArtifactIds).split(',').each { taskId ->
-                        artifacts.add([id: "${taskId}", type: "fedora-koji-build"])
+                        artifacts.add([id: taskId.toInteger(), type: "fedora-koji-build"])
                     }
 
                     def requestPayload = """

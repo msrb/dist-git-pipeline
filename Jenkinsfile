@@ -2,6 +2,9 @@
 
 @Library('fedora-pipeline-library@distgit') _
 
+import groovy.json.JsonBuilder
+
+
 def pipelineMetadata = [
     pipelineName: 'dist-git',
     pipelineDescription: 'Run tier-0 tests from dist-git',
@@ -15,7 +18,9 @@ def pipelineMetadata = [
     ],
 ]
 def artifactId
-def testingFarmResult = [:]
+def additionalArtifactIds
+def testingFarmResult
+def xunit
 
 def repoUrl
 def testType
@@ -46,22 +51,27 @@ pipeline {
             steps {
                 script {
                     artifactId = params.ARTIFACT_ID
+                    additionalArtifactIds = params.ADDITIONAL_ARTIFACT_IDS
+                    setBuildNameFromArtifactId(artifactId: artifactId)
 
                     if (!artifactId) {
                         abort('ARTIFACT_ID is missing')
                     }
 
-                    setBuildNameFromArtifactId(artifactId: artifactId)
+                    // FIXME: normally we would use "branch: env.BRANCH_NAME" here
+                    // and it would nicely translate to "rawhide" for master, etc.
+                    // However, since we are running from "tmt" brach now (Bruno is working on master branch),
+                    // we simply hardcode "master" branch here.
 
-                    repoUrl = getRepoUrlFromTaskId("${artifactId.split(':')[1]}")
-                    if (repoHasStiTests(repoUrl: repoUrl, branch: env.BRANCH_NAME)) {
+                    repoUrl = getRepoUrlFromTaskId("${getIdFromArtifactId(artifactId: artifactId)}")
+                    if (repoHasStiTests(repoUrl: repoUrl, branch: 'master')) {
                         testType = 'sti'
-                    } else if (repoHasTmtTests(repoUrl: repoUrl, branch: env.BRANCH_NAME)) {
-                        testType = 'tmt'
+                    } else if (repoHasTmtTests(repoUrl: repoUrl, branch: 'master')) {
+                        testType = 'fmf'
                     }
 
                     if (!testType) {
-                        abort('No dist-git tests (STI/TMT) were found, skipping...')
+                        abort('No dist-git tests (STI/FMF) were found, skipping...')
                     }
                 }
             }
@@ -69,34 +79,39 @@ pipeline {
 
         stage('Test') {
             steps {
-                sendMessage(type: 'queued', artifactId: artifactId, pipelineMetadata: pipelineMetadata, dryRun: isPullRequest())                
+                sendMessage(type: 'queued', artifactId: artifactId, pipelineMetadata: pipelineMetadata, dryRun: isPullRequest())
 
                 script {
+                    def artifacts = []
+                    getIdFromArtifactId(artifactId: artifactId, additionalArtifactIds: additionalArtifactIds).split(',').each { taskId ->
+                        artifacts.add([id: "${taskId}", type: "fedora-koji-build"])
+                    }
+
                     def requestPayload = """
                         {
                             "api_key": "${env.TESTING_FARM_API_KEY}",
                             "test": {
                                 "${testType}": {
                                     "url": "${repoUrl}",
-                                    "ref": "${env.BRANCH_NAME}"
+                                    "ref": "master"
                                 }
                             },
                             "environments": [
                                 {
                                     "arch": "x86_64",
-                                    "artifacts": [
-                                        {
-                                            "id": "${artifactId.split(':')[1]}",
-                                            "type": "fedora-koji-build"
-                                        }
-                                    ]
+                                    "os": {
+                                        "compose": "Fedora-Rawhide"
+                                    },
+                                    "artifacts": ${new JsonBuilder( artifacts ).toPrettyString()}
                                 }
                             ]
                         }
                     """
+                    echo "${requestPayload}"
                     def response = submitTestingFarmRequest(payload: requestPayload)
                     sendMessage(type: 'running', artifactId: artifactId, pipelineMetadata: pipelineMetadata, dryRun: isPullRequest())
                     testingFarmResult = waitForTestingFarmResults(requestId: response['id'], timeout: 60)
+                    xunit = testingFarmResult.get('result', [:]).get('xunit', '')
                     evaluateTestingFarmResults(testingFarmResult)
                 }
             }
@@ -104,14 +119,26 @@ pipeline {
     }
 
     post {
+        always {
+            // Show XUnit results in Jenkins, if possible
+            script {
+                if (testingFarmResult) {
+                    node('fedora-ci-agent') {
+                        writeFile file: 'tfxunit.xml', text: "${xunit}"
+                        sh script: "tfxunit2junit --docs-url ${pipelineMetadata['docs']} --html tfxunit.xml > xunit.xml"
+                        junit(allowEmptyResults: true, keepLongStdio: true, testResults: 'xunit.xml')
+                    }
+                }
+            }
+        }
         success {
-            sendMessage(type: 'complete', artifactId: artifactId, pipelineMetadata: pipelineMetadata, testingFarmResult: testingFarmResult, dryRun: isPullRequest())
+            sendMessage(type: 'complete', artifactId: artifactId, pipelineMetadata: pipelineMetadata, xunit: xunit, dryRun: isPullRequest())
         }
         failure {
             sendMessage(type: 'error', artifactId: artifactId, pipelineMetadata: pipelineMetadata, dryRun: isPullRequest())
         }
         unstable {
-            sendMessage(type: 'complete', artifactId: artifactId, pipelineMetadata: pipelineMetadata, testingFarmResult: testingFarmResult, dryRun: isPullRequest())
+            sendMessage(type: 'complete', artifactId: artifactId, pipelineMetadata: pipelineMetadata, xunit: xunit, dryRun: isPullRequest())
         }
     }
 }

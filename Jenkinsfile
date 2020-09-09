@@ -125,7 +125,7 @@ pipeline {
                 if (xunit) {
                     node('pipeline-library') {
                         writeFile file: 'tfxunit.xml', text: "${xunit}"
-                        sh script: "tfxunit2junit --docs-url ${pipelineMetadata['docs']} --html tfxunit.xml > xunit.xml"
+                        sh script: "tfxunit2junit --docs-url ${pipelineMetadata['docs']} tfxunit.xml > xunit.xml"
                         junit(allowEmptyResults: true, keepLongStdio: true, testResults: 'xunit.xml')
                     }
                 }

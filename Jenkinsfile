@@ -119,6 +119,7 @@ pipeline {
             steps {
                 script {
                     testingFarmResult = waitForTestingFarmResults(requestId: testingFarmRequestId, timeout: 60)
+                    echo "${testingFarmResult}"
                     xunit = testingFarmResult.get('result', [:]).get('xunit', '')
                     evaluateTestingFarmResults(testingFarmResult)
                 }

@@ -19,6 +19,7 @@ def pipelineMetadata = [
 ]
 def artifactId
 def additionalArtifactIds
+def testingFarmRequestId
 def testingFarmResult
 def xunit
 
@@ -74,13 +75,12 @@ pipeline {
                         abort('No dist-git tests (STI/FMF) were found, skipping...')
                     }
                 }
+                sendMessage(type: 'queued', artifactId: artifactId, pipelineMetadata: pipelineMetadata, dryRun: isPullRequest())
             }
         }
 
-        stage('Test') {
+        stage('Schedule Test') {
             steps {
-                sendMessage(type: 'queued', artifactId: artifactId, pipelineMetadata: pipelineMetadata, dryRun: isPullRequest())
-
                 script {
                     def artifacts = []
                     getIdFromArtifactId(artifactId: artifactId, additionalArtifactIds: additionalArtifactIds).split(',').each { taskId ->
@@ -109,8 +109,16 @@ pipeline {
                     """
                     echo "${requestPayload}"
                     def response = submitTestingFarmRequest(payload: requestPayload)
-                    sendMessage(type: 'running', artifactId: artifactId, pipelineMetadata: pipelineMetadata, dryRun: isPullRequest())
-                    testingFarmResult = waitForTestingFarmResults(requestId: response['id'], timeout: 60)
+                    testingFarmRequestId = response['id']
+                }
+                sendMessage(type: 'running', artifactId: artifactId, pipelineMetadata: pipelineMetadata, dryRun: isPullRequest())
+            }
+        }
+
+        stage('Wait for Test Results') {
+            steps {
+                script {
+                    testingFarmResult = waitForTestingFarmResults(requestId: testingFarmRequestId, timeout: 60)
                     xunit = testingFarmResult.get('result', [:]).get('xunit', '')
                     evaluateTestingFarmResults(testingFarmResult)
                 }

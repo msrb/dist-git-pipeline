@@ -58,22 +58,6 @@ pipeline {
                     if (!artifactId) {
                         abort('ARTIFACT_ID is missing')
                     }
-
-                    // FIXME: normally we would use "branch: env.BRANCH_NAME" here
-                    // and it would nicely translate to master (for rawhide), etc.
-                    // However, since we are running from non-standard "tmt" branch now (Bruno is working on the master branch),
-                    // we simply hardcode "master" branch here.
-
-                    repoUrl = getRepoUrlFromTaskId("${getIdFromArtifactId(artifactId: artifactId)}")
-                    if (repoHasStiTests(repoUrl: repoUrl, branch: 'master')) {
-                        testType = 'sti'
-                    } else if (repoHasTmtTests(repoUrl: repoUrl, branch: 'master')) {
-                        testType = 'fmf'
-                    }
-
-                    if (!testType) {
-                        abort('No dist-git tests (STI/FMF) were found, skipping...')
-                    }
                 }
                 sendMessage(type: 'queued', artifactId: artifactId, pipelineMetadata: pipelineMetadata, dryRun: isPullRequest())
             }
@@ -81,64 +65,18 @@ pipeline {
 
         stage('Schedule Test') {
             steps {
-                script {
-                    def artifacts = []
-                    getIdFromArtifactId(artifactId: artifactId, additionalArtifactIds: additionalArtifactIds).split(',').each { taskId ->
-                        artifacts.add([id: "${taskId}", type: "fedora-koji-build"])
-                    }
-
-                    def requestPayload = """
-                        {
-                            "api_key": "${env.TESTING_FARM_API_KEY}",
-                            "test": {
-                                "${testType}": {
-                                    "url": "${repoUrl}",
-                                    "ref": "master"
-                                }
-                            },
-                            "environments": [
-                                {
-                                    "arch": "x86_64",
-                                    "os": {
-                                        "compose": "Fedora-Rawhide"
-                                    },
-                                    "artifacts": ${new JsonBuilder( artifacts ).toPrettyString()}
-                                }
-                            ]
-                        }
-                    """
-                    echo "${requestPayload}"
-                    def response = submitTestingFarmRequest(payload: requestPayload)
-                    testingFarmRequestId = response['id']
-                }
                 sendMessage(type: 'running', artifactId: artifactId, pipelineMetadata: pipelineMetadata, dryRun: isPullRequest())
             }
         }
 
         stage('Wait for Test Results') {
             steps {
-                script {
-                    testingFarmResult = waitForTestingFarmResults(requestId: testingFarmRequestId, timeout: 60)
-                    xunit = testingFarmResult.get('result', [:])?.get('xunit', '') ?: ''
-                    evaluateTestingFarmResults(testingFarmResult)
-                }
+                echo "no-op"
             }
         }
     }
 
     post {
-        always {
-            // Show XUnit results in Jenkins, if available
-            script {
-                if (xunit) {
-                    node('pipeline-library') {
-                        writeFile file: 'tfxunit.xml', text: "${xunit}"
-                        sh script: "tfxunit2junit --docs-url ${pipelineMetadata['docs']} tfxunit.xml > xunit.xml"
-                        junit(allowEmptyResults: true, keepLongStdio: true, testResults: 'xunit.xml')
-                    }
-                }
-            }
-        }
         success {
             sendMessage(type: 'complete', artifactId: artifactId, pipelineMetadata: pipelineMetadata, xunit: xunit, dryRun: isPullRequest())
         }

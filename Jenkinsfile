@@ -59,7 +59,7 @@ pipeline {
                         abort('ARTIFACT_ID is missing')
                     }
                 }
-                sendMessage(type: 'queued', artifactId: artifactId, pipelineMetadata: pipelineMetadata, dryRun: isPullRequest())
+                sendMessage(type: 'queued', artifactId: artifactId, pipelineMetadata: pipelineMetadata, dryRun: false)
             }
         }
 

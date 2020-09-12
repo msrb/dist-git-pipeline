@@ -59,7 +59,7 @@ pipeline {
                         abort('ARTIFACT_ID is missing')
                     }
                 }
-                sendMessage(type: 'queued', artifactId: artifactId, pipelineMetadata: pipelineMetadata, dryRun: false)
+                sendMessage(type: 'queued', topic: 'org.centos.prod.ci.dist-git-pr.test.queued', artifactId: artifactId, pipelineMetadata: pipelineMetadata, dryRun: false)
             }
         }
 

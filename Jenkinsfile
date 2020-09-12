@@ -80,7 +80,7 @@ pipeline {
     post {
         success {
             echo "no-op"
-            // sendMessage(type: 'complete', artifactId: artifactId, pipelineMetadata: pipelineMetadata, xunit: xunit, dryRun: isPullRequest())
+            sendMessage(type: 'complete', topic: 'org.centos.prod.ci.dist-git-pr.test.complete', artifactId: artifactId, pipelineMetadata: pipelineMetadata, xunit: xunit, dryRun: false)
         }
         failure {
             echo "no-op"

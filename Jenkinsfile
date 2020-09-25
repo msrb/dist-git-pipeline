@@ -84,7 +84,7 @@ pipeline {
         }
         failure {
             echo "no-op"
-            sendMessage(type: 'error', topic: 'org.centos.prod.ci.dist-git-pr.test.error', artifactId: artifactId, pipelineMetadata: pipelineMetadata, dryRun: isPullRequest())
+            sendMessage(type: 'error', topic: 'org.centos.prod.ci.dist-git-pr.test.error', artifactId: artifactId, pipelineMetadata: pipelineMetadata, dryRun: false)
         }
         unstable {
             echo "no-op"

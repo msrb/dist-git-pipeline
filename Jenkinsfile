@@ -55,7 +55,8 @@ pipeline {
                     additionalArtifactIds = params.ADDITIONAL_ARTIFACT_IDS
                     setBuildNameFromArtifactId(artifactId: artifactId)
 
-                    // currentBuild.result = 'UNSTABLE'
+                    def ids = getIdFromArtifactId(artifactId: artifactId)
+                    echo "${ids}"
 
                     if (!artifactId) {
                         abort('ARTIFACT_ID is missing')
@@ -83,7 +84,7 @@ pipeline {
         success {
             echo "no-op"
             // sendMessage(type: 'complete', topic: 'org.centos.prod.ci.dist-git-pr.test.complete', artifactId: artifactId, pipelineMetadata: pipelineMetadata, xunit: xunit, dryRun: false)
-            // sendMessage(type: 'error', topic: 'org.centos.prod.ci.dist-git-pr.test.error', artifactId: artifactId, pipelineMetadata: pipelineMetadata, dryRun: false)
+            sendMessage(type: 'error', topic: 'org.centos.prod.ci.dist-git-pr.test.error', artifactId: artifactId, pipelineMetadata: pipelineMetadata, dryRun: false)
         }
         failure {
             echo "no-op"

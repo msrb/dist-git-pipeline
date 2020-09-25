@@ -56,7 +56,6 @@ pipeline {
                     setBuildNameFromArtifactId(artifactId: artifactId)
 
                     currentBuild.result = 'UNSTABLE'
-                    error('test')
 
                     if (!artifactId) {
                         abort('ARTIFACT_ID is missing')

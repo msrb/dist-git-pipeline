@@ -59,14 +59,14 @@ pipeline {
                         abort('ARTIFACT_ID is missing')
                     }
                 }
-                sendMessage(type: 'queued', topic: 'org.centos.prod.ci.dist-git-pr.test.queued', artifactId: artifactId, pipelineMetadata: pipelineMetadata, dryRun: false)
+                // sendMessage(type: 'queued', topic: 'org.centos.prod.ci.dist-git-pr.test.queued', artifactId: artifactId, pipelineMetadata: pipelineMetadata, dryRun: false)
             }
         }
 
         stage('Schedule Test') {
             steps {
                 echo "no-op"
-                // sendMessage(type: 'running', artifactId: artifactId, pipelineMetadata: pipelineMetadata, dryRun: isPullRequest())
+                sendMessage(type: 'running', topic: 'org.centos.prod.ci.dist-git-pr.test.running', artifactId: artifactId, pipelineMetadata: pipelineMetadata, dryRun: false)
             }
         }
 

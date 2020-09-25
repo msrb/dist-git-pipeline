@@ -66,7 +66,7 @@ pipeline {
         stage('Schedule Test') {
             steps {
                 echo "no-op"
-                sendMessage(type: 'running', topic: 'org.centos.prod.ci.dist-git-pr.test.running', artifactId: artifactId, pipelineMetadata: pipelineMetadata, dryRun: false)
+                // sendMessage(type: 'running', topic: 'org.centos.prod.ci.dist-git-pr.test.running', artifactId: artifactId, pipelineMetadata: pipelineMetadata, dryRun: false)
             }
         }
 
@@ -84,7 +84,7 @@ pipeline {
         }
         failure {
             echo "no-op"
-            // sendMessage(type: 'error', topic: 'org.centos.prod.ci.dist-git-pr.test.error', artifactId: artifactId, pipelineMetadata: pipelineMetadata, dryRun: isPullRequest())
+            sendMessage(type: 'error', topic: 'org.centos.prod.ci.dist-git-pr.test.error', artifactId: artifactId, pipelineMetadata: pipelineMetadata, dryRun: isPullRequest())
         }
         unstable {
             echo "no-op"

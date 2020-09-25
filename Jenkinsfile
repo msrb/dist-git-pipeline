@@ -1,6 +1,6 @@
 #!groovy
 
-@Library('fedora-pipeline-library@pull-requests') _
+@Library('fedora-pipeline-library@composite-artifacts') _
 
 import groovy.json.JsonBuilder
 
@@ -55,7 +55,7 @@ pipeline {
                     additionalArtifactIds = params.ADDITIONAL_ARTIFACT_IDS
                     setBuildNameFromArtifactId(artifactId: artifactId)
 
-                    currentBuild.result = 'UNSTABLE'
+                    // currentBuild.result = 'UNSTABLE'
 
                     if (!artifactId) {
                         abort('ARTIFACT_ID is missing')
@@ -91,7 +91,7 @@ pipeline {
         }
         unstable {
             echo "no-op"
-            sendMessage(type: 'complete',  topic: 'org.centos.prod.ci.dist-git-pr.test.complete', artifactId: artifactId, pipelineMetadata: pipelineMetadata, xunit: xunit, dryRun: false)
+            // sendMessage(type: 'complete',  topic: 'org.centos.prod.ci.dist-git-pr.test.complete', artifactId: artifactId, pipelineMetadata: pipelineMetadata, xunit: xunit, dryRun: false)
         }
     }
 }

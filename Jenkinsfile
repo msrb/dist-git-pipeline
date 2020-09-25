@@ -59,7 +59,7 @@ pipeline {
                         abort('ARTIFACT_ID is missing')
                     }
                 }
-                // sendMessage(type: 'queued', topic: 'org.centos.prod.ci.dist-git-pr.test.queued', artifactId: artifactId, pipelineMetadata: pipelineMetadata, dryRun: false)
+                sendMessage(type: 'queued', topic: 'org.centos.prod.ci.dist-git-pr.test.queued', artifactId: artifactId, pipelineMetadata: pipelineMetadata, dryRun: false)
             }
         }
 
@@ -80,15 +80,15 @@ pipeline {
     post {
         success {
             echo "no-op"
-            sendMessage(type: 'complete', topic: 'org.centos.prod.ci.dist-git-pr.test.complete', artifactId: artifactId, pipelineMetadata: pipelineMetadata, xunit: xunit, dryRun: false)
+            // sendMessage(type: 'complete', topic: 'org.centos.prod.ci.dist-git-pr.test.complete', artifactId: artifactId, pipelineMetadata: pipelineMetadata, xunit: xunit, dryRun: false)
         }
         failure {
             echo "no-op"
-            // sendMessage(type: 'error', artifactId: artifactId, pipelineMetadata: pipelineMetadata, dryRun: isPullRequest())
+            // sendMessage(type: 'error', topic: 'org.centos.prod.ci.dist-git-pr.test.error', artifactId: artifactId, pipelineMetadata: pipelineMetadata, dryRun: isPullRequest())
         }
         unstable {
             echo "no-op"
-            // sendMessage(type: 'complete', artifactId: artifactId, pipelineMetadata: pipelineMetadata, xunit: xunit, dryRun: isPullRequest())
+            // sendMessage(type: 'complete',  topic: 'org.centos.prod.ci.dist-git-pr.test.complete', artifactId: artifactId, pipelineMetadata: pipelineMetadata, xunit: xunit, dryRun: isPullRequest())
         }
     }
 }

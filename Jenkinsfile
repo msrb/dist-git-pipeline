@@ -1,6 +1,6 @@
 #!groovy
 
-@Library('fedora-pipeline-library@distgit') _
+@Library('fedora-pipeline-library@candidate') _
 
 import groovy.json.JsonBuilder
 
@@ -23,7 +23,7 @@ def testingFarmRequestId
 def testingFarmResult
 def xunit
 
-def repoUrl
+def repoUrlAndRef
 def testType
 
 
@@ -64,15 +64,11 @@ pipeline {
                     // However, since we are running from non-standard "tmt" branch now (Bruno is working on the master branch),
                     // we simply hardcode "master" branch here.
 
-                    repoUrl = getRepoUrlFromTaskId("${getIdFromArtifactId(artifactId: artifactId)}")
-                    if (repoHasStiTests(repoUrl: repoUrl, branch: 'master')) {
-                        testType = 'sti'
-                    } else if (repoHasTmtTests(repoUrl: repoUrl, branch: 'master')) {
-                        testType = 'fmf'
-                    }
+                    repoUrlAndRef = getRepoUrlAndRefFromTaskId("${getIdFromArtifactId(artifactId: artifactId)}")
+                    testType = repoHasTests(repoUrl: repoUrlAndRef[0], ref: repoUrlAndRef[1])
 
                     if (!testType) {
-                        abort('No dist-git tests (STI/FMF) were found, skipping...')
+                        abort('No dist-git tests (STI/FMF) were found in the repository, skipping...')
                     }
                 }
                 sendMessage(type: 'queued', artifactId: artifactId, pipelineMetadata: pipelineMetadata, dryRun: isPullRequest())
@@ -92,8 +88,8 @@ pipeline {
                             "api_key": "${env.TESTING_FARM_API_KEY}",
                             "test": {
                                 "${testType}": {
-                                    "url": "${repoUrl}",
-                                    "ref": "master"
+                                    "url": "${repoUrlAndRef[0]}",
+                                    "ref": "${repoUrlAndRef[1]}"
                                 }
                             },
                             "environments": [

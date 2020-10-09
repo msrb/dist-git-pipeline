@@ -24,7 +24,7 @@ def testingFarmResult
 def xunit
 
 def repoUrlAndRef
-def testType
+def repoTests
 
 
 pipeline {
@@ -41,6 +41,8 @@ pipeline {
     parameters {
         string(name: 'ARTIFACT_ID', defaultValue: '', trim: true, description: '"koji-build:&lt;taskId&gt;" for Koji builds; Example: koji-build:46436038')
         string(name: 'ADDITIONAL_ARTIFACT_IDS', defaultValue: '', trim: true, description: 'A comma-separated list of additional ARTIFACT_IDs')
+        string(name: 'TEST_REPO_URL', defaultValue: '', trim: true,
+        description: '(optional) URL to the repository containing tests; followed by "#&lt;ref&gt;", where &lt;ref&gt; is a commit hash; Example: https://src.fedoraproject.org/tests/selinux#ff0784e36758f2fdce3201d907855b0dd74064f9')
     }
 
     environment {
@@ -64,11 +66,15 @@ pipeline {
                     // However, since we are running from non-standard "tmt" branch now (Bruno is working on the master branch),
                     // we simply hardcode "master" branch here.
 
-                    repoUrlAndRef = getRepoUrlAndRefFromTaskId("${getIdFromArtifactId(artifactId: artifactId)}")
-                    testType = repoHasTests(repoUrl: repoUrlAndRef[0], ref: repoUrlAndRef[1])
+                    if (!TEST_REPO_URL) {
+                        repoUrlAndRef = getRepoUrlAndRefFromTaskId("${getIdFromArtifactId(artifactId: artifactId)}")
+                    } else {
+                        repoUrlAndRef = TEST_REPO_URL.split('#')
+                    }
+                    repoTests = repoHasTests(repoUrl: repoUrlAndRef[0], ref: repoUrlAndRef[1])
 
-                    if (!testType) {
-                        abort('No dist-git tests (STI/FMF) were found in the repository, skipping...')
+                    if (!repoTests) {
+                        abort("No dist-git tests (STI/FMF) were found in the repository ${repoUrlAndRef[0]}, skipping...")
                     }
                 }
                 sendMessage(type: 'queued', artifactId: artifactId, pipelineMetadata: pipelineMetadata, dryRun: isPullRequest())
@@ -80,16 +86,28 @@ pipeline {
                 script {
                     def artifacts = []
                     getIdFromArtifactId(artifactId: artifactId, additionalArtifactIds: additionalArtifactIds).split(',').each { taskId ->
-                        artifacts.add([id: "${taskId}", type: "fedora-koji-build"])
+                        if (taskId) {
+                            artifacts.add([id: "${taskId}", type: "fedora-koji-build"])
+                        }
+                    }
+
+                    // TODO: turn the whole requestPayload into a map
+                    def extras = ''
+                    if (repoTests['type'] == 'sti') {
+                        extras = ",\n\"playbooks\": ["
+                        repoTests['files'].each{ f ->
+                            extras += "\"${f}\""
+                        }
+                        extras += ']'
                     }
 
                     def requestPayload = """
                         {
                             "api_key": "${env.TESTING_FARM_API_KEY}",
                             "test": {
-                                "${testType}": {
+                                "${repoTests['type']}": {
                                     "url": "${repoUrlAndRef[0]}",
-                                    "ref": "${repoUrlAndRef[1]}"
+                                    "ref": "${repoUrlAndRef[1]}"${extras}
                                 }
                             },
                             "environments": [

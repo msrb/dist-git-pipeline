@@ -24,7 +24,7 @@ def testingFarmResult
 def xunit
 
 def repoUrlAndRef
-def testType
+def repoTests
 
 
 pipeline {
@@ -71,10 +71,10 @@ pipeline {
                     } else {
                         repoUrlAndRef = TEST_REPO_URL.split('#')
                     }
-                    testType = repoHasTests(repoUrl: repoUrlAndRef[0], ref: repoUrlAndRef[1])
+                    repoTests = repoHasTests(repoUrl: repoUrlAndRef[0], ref: repoUrlAndRef[1])
 
-                    if (!testType) {
-                        abort('No dist-git tests (STI/FMF) were found in the repository, skipping...')
+                    if (!repoTests) {
+                        abort("No dist-git tests (STI/FMF) were found in the repository ${repoUrlAndRef[0]}, skipping...")
                     }
                 }
                 sendMessage(type: 'queued', artifactId: artifactId, pipelineMetadata: pipelineMetadata, dryRun: isPullRequest())
@@ -91,13 +91,23 @@ pipeline {
                         }
                     }
 
+                    // TODO: turn the whole requestPayload into a map
+                    def extras = ''
+                    if (repoTests['type'] == 'sti') {
+                        extras = ",\n\"playbooks\": ["
+                        repoTests['files'].each{ f ->
+                            extras += "\"${f}\""
+                        }
+                        extras += ']'
+                    }
+
                     def requestPayload = """
                         {
                             "api_key": "${env.TESTING_FARM_API_KEY}",
                             "test": {
-                                "${testType}": {
+                                "${repoTests['type']}": {
                                     "url": "${repoUrlAndRef[0]}",
-                                    "ref": "${repoUrlAndRef[1]}"
+                                    "ref": "${repoUrlAndRef[1]}"${extras}
                                 }
                             },
                             "environments": [

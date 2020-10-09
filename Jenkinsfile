@@ -41,6 +41,8 @@ pipeline {
     parameters {
         string(name: 'ARTIFACT_ID', defaultValue: '', trim: true, description: '"koji-build:&lt;taskId&gt;" for Koji builds; Example: koji-build:46436038')
         string(name: 'ADDITIONAL_ARTIFACT_IDS', defaultValue: '', trim: true, description: 'A comma-separated list of additional ARTIFACT_IDs')
+        string(name: 'TEST_REPO_URL', defaultValue: '', trim: true,
+        description: '(optional) URL to the repository containing tests; followed by "#&lt;ref&gt;", where &lt;ref&gt; is a commit hash; Example: https://src.fedoraproject.org/tests/selinux#ff0784e36758f2fdce3201d907855b0dd74064f9')
     }
 
     environment {
@@ -64,7 +66,11 @@ pipeline {
                     // However, since we are running from non-standard "tmt" branch now (Bruno is working on the master branch),
                     // we simply hardcode "master" branch here.
 
-                    repoUrlAndRef = getRepoUrlAndRefFromTaskId("${getIdFromArtifactId(artifactId: artifactId)}")
+                    if (!TEST_REPO_URL) {
+                        repoUrlAndRef = getRepoUrlAndRefFromTaskId("${getIdFromArtifactId(artifactId: artifactId)}")
+                    } else {
+                        repoUrlAndRef = TEST_REPO_URL.split('#')
+                    }
                     testType = repoHasTests(repoUrl: repoUrlAndRef[0], ref: repoUrlAndRef[1])
 
                     if (!testType) {
@@ -80,7 +86,9 @@ pipeline {
                 script {
                     def artifacts = []
                     getIdFromArtifactId(artifactId: artifactId, additionalArtifactIds: additionalArtifactIds).split(',').each { taskId ->
-                        artifacts.add([id: "${taskId}", type: "fedora-koji-build"])
+                        if (taskId) {
+                            artifacts.add([id: "${taskId}", type: "fedora-koji-build"])
+                        }
                     }
 
                     def requestPayload = """

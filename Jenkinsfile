@@ -93,12 +93,16 @@ pipeline {
 
                     // TODO: turn the whole requestPayload into a map
                     def extras = ''
+                    def playbooks = ''
                     if (repoTests['type'] == 'sti') {
                         extras = ",\n\"playbooks\": ["
                         repoTests['files'].each{ f ->
-                            extras += "\"${f}\""
+                            if (playbooks) {
+                                playbooks += ', '
+                            }
+                            playbooks += "\"${f}\""
                         }
-                        extras += ']'
+                        extras += playbooks + ']'
                     }
 
                     def requestPayload = """

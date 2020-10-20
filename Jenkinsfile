@@ -61,11 +61,6 @@ pipeline {
                         abort('ARTIFACT_ID is missing')
                     }
 
-                    // FIXME: normally we would use "branch: env.BRANCH_NAME" here
-                    // and it would nicely translate to master (for rawhide), etc.
-                    // However, since we are running from non-standard "tmt" branch now (Bruno is working on the master branch),
-                    // we simply hardcode "master" branch here.
-
                     if (!TEST_REPO_URL) {
                         repoUrlAndRef = getRepoUrlAndRefFromTaskId("${getIdFromArtifactId(artifactId: artifactId)}")
                     } else {

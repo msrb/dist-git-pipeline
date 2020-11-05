@@ -9,7 +9,7 @@ def pipelineMetadata = [
     pipelineName: 'dist-git',
     pipelineDescription: 'Run tier-0 tests from dist-git',
     testCategory: 'functional',
-    testType: 'tier0-tf',
+    testType: 'tier0',
     maintainer: 'Fedora CI',
     docs: 'https://github.com/fedora-ci/dist-git-pipeline',
     contact: [

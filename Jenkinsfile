@@ -1,8 +1,6 @@
 #!groovy
 
-@Library('fedora-pipeline-library@candidate') _
-
-import groovy.json.JsonBuilder
+@Library('fedora-pipeline-library@candidate2') _
 
 
 def pipelineMetadata = [
@@ -64,9 +62,9 @@ pipeline {
                     if (!TEST_REPO_URL) {
                         repoUrlAndRef = getRepoUrlAndRefFromTaskId("${getIdFromArtifactId(artifactId: artifactId)}")
                     } else {
-                        repoUrlAndRef = TEST_REPO_URL.split('#')
+                        repoUrlAndRef = [url: TEST_REPO_URL.split('#')[0], ref: TEST_REPO_URL.split('#')[1]]
                     }
-                    repoTests = repoHasTests(repoUrl: repoUrlAndRef[0], ref: repoUrlAndRef[1])
+                    repoTests = repoHasTests(repoUrl: repoUrlAndRef['url'], ref: repoUrlAndRef['ref'])
 
                     if (!repoTests) {
                         abort("No dist-git tests (STI/FMF) were found in the repository ${repoUrlAndRef[0]}, skipping...")
@@ -86,42 +84,28 @@ pipeline {
                         }
                     }
 
-                    // TODO: turn the whole requestPayload into a map
-                    def extras = ''
-                    def playbooks = ''
+                    def requestPayload = [
+                        api_key: "${env.TESTING_FARM_API_KEY}",
+                        test: [:],
+                        environments: [
+                            [
+                                arch: "x86_64",
+                                os: [ compose: "Fedora-33" ],
+                                artifacts: artifacts
+                            ]
+                        ]
+                    ]
+
                     if (repoTests['type'] == 'sti') {
-                        extras = ",\n\"playbooks\": ["
-                        repoTests['files'].each{ f ->
-                            if (playbooks) {
-                                playbooks += ', '
-                            }
-                            playbooks += "\"${f}\""
-                        }
-                        extras += playbooks + ']'
+                        // add playbooks to run
+                        requestPayload['test']['sti'] = repoUrlAndRef
+                        requestPayload['test']['sti']['playbooks'] = repoTests['files']
+                    } else {
+                        // tmt
+                        requestPayload['test']['fmf'] = repoUrlAndRef
                     }
 
-                    def requestPayload = """
-                        {
-                            "api_key": "${env.TESTING_FARM_API_KEY}",
-                            "test": {
-                                "${repoTests['type']}": {
-                                    "url": "${repoUrlAndRef[0]}",
-                                    "ref": "${repoUrlAndRef[1]}"${extras}
-                                }
-                            },
-                            "environments": [
-                                {
-                                    "arch": "x86_64",
-                                    "os": {
-                                        "compose": "Fedora-33"
-                                    },
-                                    "artifacts": ${new JsonBuilder( artifacts ).toPrettyString()}
-                                }
-                            ]
-                        }
-                    """
-                    echo "${requestPayload}"
-                    def response = submitTestingFarmRequest(payload: requestPayload)
+                    def response = submitTestingFarmRequest(payloadMap: requestPayload)
                     testingFarmRequestId = response['id']
                 }
                 sendMessage(type: 'running', artifactId: artifactId, pipelineMetadata: pipelineMetadata, dryRun: isPullRequest())

@@ -1,0 +1,28 @@
+{
+    "profiles": {
+        "f31": {
+            "compose": "Fedora-31"
+        },
+        "f32": {
+            "compose": "Fedora-32"
+        },
+        "f33": {
+            "compose": "Fedora-33"
+        },
+        "f34": {
+            "compose": "Fedora-Rawhide"
+        },
+        "f35": {
+            "compose": "Fedora-Rawhide"
+        },
+        "f36": {
+            "compose": "Fedora-Rawhide"
+        },
+        "f37": {
+            "compose": "Fedora-Rawhide"
+        },
+        "f38": {
+            "compose": "Fedora-Rawhide"
+        }
+    }
+}

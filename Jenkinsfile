@@ -1,6 +1,6 @@
 #!groovy
 
-@Library('fedora-pipeline-library@candidate2') _
+@Library('fedora-pipeline-library@skipped-note') _
 
 
 def pipelineMetadata = [
@@ -24,6 +24,8 @@ def config
 
 def repoUrlAndRef
 def repoTests
+
+def note
 
 def podYAML = """
 spec:
@@ -79,15 +81,20 @@ pipeline {
                     }
                     repoTests = repoHasTests(repoUrl: repoUrlAndRef['url'], ref: repoUrlAndRef['ref'])
 
-                    if (!repoTests) {
-                        abort("No dist-git tests (STI/FMF) were found in the repository ${repoUrlAndRef[0]}, skipping...")
+                    if (repoTests) {
+                        sendMessage(type: 'queued', artifactId: artifactId, pipelineMetadata: pipelineMetadata, dryRun: isPullRequest())
+                    } else {
+                        note = "No dist-git tests (STI/FMF) were found in the repository ${repoUrlAndRef[0]}, skipping..."
+                        echo "${note}"
                     }
                 }
-                sendMessage(type: 'queued', artifactId: artifactId, pipelineMetadata: pipelineMetadata, dryRun: isPullRequest())
             }
         }
 
         stage('Schedule Test') {
+            when {
+                expression { repoTests }
+            }
             steps {
                 script {
                     def artifacts = []
@@ -126,6 +133,9 @@ pipeline {
         }
 
         stage('Wait for Test Results') {
+            when {
+                expression { repoTests }
+            }
             steps {
                 script {
                     testingFarmResult = waitForTestingFarmResults(requestId: testingFarmRequestId, timeout: 60)
@@ -160,7 +170,7 @@ pipeline {
             evaluateTestingFarmResults(testingFarmResult)
         }
         success {
-            sendMessage(type: 'complete', artifactId: artifactId, pipelineMetadata: pipelineMetadata, xunit: xunit, dryRun: isPullRequest())
+            sendMessage(type: 'complete', artifactId: artifactId, pipelineMetadata: pipelineMetadata, xunit: xunit, isSkipped: !hasTests, note: note, dryRun: isPullRequest())
         }
         failure {
             sendMessage(type: 'error', artifactId: artifactId, pipelineMetadata: pipelineMetadata, dryRun: isPullRequest())

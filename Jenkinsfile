@@ -85,7 +85,7 @@ pipeline {
                     if (repoTests) {
                         sendMessage(type: 'queued', artifactId: artifactId, pipelineMetadata: pipelineMetadata, testScenario: params.TEST_SCENARIO, dryRun: isPullRequest())
                     } else {
-                        note = "No dist-git tests (STI/FMF) were found in the repository ${repoUrlAndRef[0]}, skipping..."
+                        note = "No dist-git tests (STI/TMT) were found in the repository ${repoUrlAndRef[0]}, skipping..."
                         echo "${note}"
                     }
                 }

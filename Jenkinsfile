@@ -1,6 +1,6 @@
 #!groovy
 
-@Library('fedora-pipeline-library@candidate2') _
+@Library('fedora-pipeline-library@fedora-stable') _
 
 
 def pipelineMetadata = [
@@ -116,6 +116,9 @@ pipeline {
                     } else {
                         // tmt
                         requestPayload['test']['fmf'] = repoUrlAndRef
+                        requestPayload['environments'][0]['tmt'] = [
+                            context: config.tmt_context[getTargetArtifactType(artifactId)]
+                        ]
                     }
 
                     def response = submitTestingFarmRequest(payloadMap: requestPayload)

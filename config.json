@@ -1,28 +1,124 @@
 {
     "profiles": {
         "f31": {
-            "compose": "Fedora-31"
+            "compose": "Fedora-31",
+            "tmt_context": {
+                "koji-build": {
+                    "distro": "fedora-31",
+                    "arch": "x86_64",
+                    "trigger": "build"
+                },
+                "fedora-dist-git": {
+                    "distro": "fedora-31",
+                    "arch": "x86_64",
+                    "trigger": "code"
+                }
+            }
         },
         "f32": {
-            "compose": "Fedora-32"
+            "compose": "Fedora-32",
+            "tmt_context": {
+                "koji-build": {
+                    "distro": "fedora-32",
+                    "arch": "x86_64",
+                    "trigger": "build"
+                },
+                "fedora-dist-git": {
+                    "distro": "fedora-32",
+                    "arch": "x86_64",
+                    "trigger": "code"
+                }
+            }
         },
         "f33": {
-            "compose": "Fedora-33"
+            "compose": "Fedora-33",
+            "tmt_context": {
+                "koji-build": {
+                    "distro": "fedora-33",
+                    "arch": "x86_64",
+                    "trigger": "build"
+                },
+                "fedora-dist-git": {
+                    "distro": "fedora-33",
+                    "arch": "x86_64",
+                    "trigger": "code"
+                }
+            }
         },
         "f34": {
-            "compose": "Fedora-Rawhide"
+            "compose": "Fedora-Rawhide",
+            "tmt_context": {
+                "koji-build": {
+                    "distro": "fedora-34",
+                    "arch": "x86_64",
+                    "trigger": "build"
+                },
+                "fedora-dist-git": {
+                    "distro": "fedora-34",
+                    "arch": "x86_64",
+                    "trigger": "code"
+                }
+            }
         },
         "f35": {
-            "compose": "Fedora-Rawhide"
+            "compose": "Fedora-Rawhide",
+            "tmt_context": {
+                "koji-build": {
+                    "distro": "fedora-35",
+                    "arch": "x86_64",
+                    "trigger": "build"
+                },
+                "fedora-dist-git": {
+                    "distro": "fedora-35",
+                    "arch": "x86_64",
+                    "trigger": "code"
+                }
+            }
         },
         "f36": {
-            "compose": "Fedora-Rawhide"
+            "compose": "Fedora-Rawhide",
+            "tmt_context": {
+                "koji-build": {
+                    "distro": "fedora-36",
+                    "arch": "x86_64",
+                    "trigger": "build"
+                },
+                "fedora-dist-git": {
+                    "distro": "fedora-36",
+                    "arch": "x86_64",
+                    "trigger": "code"
+                }
+            }
         },
         "f37": {
-            "compose": "Fedora-Rawhide"
+            "compose": "Fedora-Rawhide",
+            "tmt_context": {
+                "koji-build": {
+                    "distro": "fedora-37",
+                    "arch": "x86_64",
+                    "trigger": "build"
+                },
+                "fedora-dist-git": {
+                    "distro": "fedora-37",
+                    "arch": "x86_64",
+                    "trigger": "code"
+                }
+            }
         },
         "f38": {
-            "compose": "Fedora-Rawhide"
+            "compose": "Fedora-Rawhide",
+            "tmt_context": {
+                "koji-build": {
+                    "distro": "fedora-38",
+                    "arch": "x86_64",
+                    "trigger": "build"
+                },
+                "fedora-dist-git": {
+                    "distro": "fedora-38",
+                    "arch": "x86_64",
+                    "trigger": "code"
+                }
+            }
         }
     }
 }

@@ -165,8 +165,8 @@ pipeline {
         failure {
             script {
                 if (env.ERROR_MESSAGE) {
-                    def errorText = testingFarmResult ? "<h1>Error</h1><p>${env.ERROR_MESSAGE}<br>Logs: ${FEDORA_CI_TESTING_FARM_ARTIFACTS_URL}/${testingFarmRequestId}</p>" : "<h1>Error</h1><p>${env.ERROR_MESSAGE}</p>"
-                    rtp(failedText: errorText, parserName: 'HTML')
+                    // def errorText = testingFarmResult ? "<h1>Error</h1><p>${env.ERROR_MESSAGE}</p><p>Logs: ${FEDORA_CI_TESTING_FARM_ARTIFACTS_URL}/${testingFarmRequestId}</p>" : "<h1>Error</h1><p>${env.ERROR_MESSAGE}</p>"
+                    rtp(failedText: "<h1>test</h1>", parserName: 'HTML')
                 }
                 sendMessage(type: 'error', artifactId: artifactId, pipelineMetadata: pipelineMetadata, dryRun: isPullRequest())
             }

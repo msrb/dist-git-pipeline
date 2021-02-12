@@ -50,7 +50,7 @@ pipeline {
     parameters {
         string(name: 'ARTIFACT_ID', defaultValue: '', trim: true, description: '"koji-build:&lt;taskId&gt;" for Koji builds; Example: koji-build:46436038')
         string(name: 'ADDITIONAL_ARTIFACT_IDS', defaultValue: '', trim: true, description: 'A comma-separated list of additional ARTIFACT_IDs')
-        string(name: 'TEST_PROFILE', defaultValue: 'f34', trim: true, description: 'A name of the test profile to use; Example: f34')
+        string(name: 'TEST_PROFILE', defaultValue: 'f35', trim: true, description: 'A name of the test profile to use; Example: f34')
         string(name: 'TEST_REPO_URL', defaultValue: '', trim: true, description: '(optional) URL to the repository containing tests; followed by "#&lt;ref&gt;", where &lt;ref&gt; is a commit hash; Example: https://src.fedoraproject.org/tests/selinux#ff0784e36758f2fdce3201d907855b0dd74064f9')
     }
 

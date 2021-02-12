@@ -136,6 +136,7 @@ pipeline {
 
         stage('Process Test Results (XUnit)') {
             when {
+                beforeAgent true
                 expression { xunit }
             }
             agent {

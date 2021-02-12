@@ -21,6 +21,7 @@ def testingFarmRequestId
 def testingFarmResult
 def xunit
 def config
+def hook
 
 def repoUrlAndRef
 def repoTests
@@ -41,11 +42,10 @@ pipeline {
     options {
         buildDiscarder(logRotator(daysToKeepStr: '45', artifactNumToKeepStr: '100'))
         timeout(time: 12, unit: 'HOURS')
+        skipDefaultCheckout(true)
     }
 
-    agent {
-        label 'dist-git'
-    }
+    agent none
 
     parameters {
         string(name: 'ARTIFACT_ID', defaultValue: '', trim: true, description: '"koji-build:&lt;taskId&gt;" for Koji builds; Example: koji-build:46436038')
@@ -60,12 +60,16 @@ pipeline {
 
     stages {
         stage('Prepare') {
+            agent {
+                label pipelineMetadata.pipelineName
+            }
             steps {
                 script {
                     artifactId = params.ARTIFACT_ID
                     additionalArtifactIds = params.ADDITIONAL_ARTIFACT_IDS
                     setBuildNameFromArtifactId(artifactId: artifactId, profile: params.TEST_PROFILE)
 
+                    checkout scm
                     config = loadConfig(profile: params.TEST_PROFILE)
 
                     if (!artifactId) {
@@ -88,6 +92,9 @@ pipeline {
         }
 
         stage('Schedule Test') {
+            agent {
+                label pipelineMetadata.pipelineName
+            }
             steps {
                 script {
                     def artifacts = []
@@ -121,6 +128,9 @@ pipeline {
                         ]
                     }
 
+                    hook = registerWebhook()
+                    requestPayload['notification'] = ['webhook': [url: hook.getURL()]]
+
                     def response = submitTestingFarmRequest(payloadMap: requestPayload)
                     testingFarmRequestId = response['id']
                 }
@@ -129,10 +139,12 @@ pipeline {
         }
 
         stage('Wait for Test Results') {
+            agent none
             steps {
                 script {
-                    testingFarmResult = waitForTestingFarmResults(requestId: testingFarmRequestId, timeout: 60)
-                    xunit = testingFarmResult.get('result', [:])?.get('xunit', '') ?: ''
+                    def response = waitForTestingFarm(requestId: testingFarmRequestId, hook: hook)
+                    testingFarmResult = response.apiResponse
+                    xunit = response.xunit
                 }
             }
         }

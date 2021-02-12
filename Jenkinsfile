@@ -1,6 +1,6 @@
 #!groovy
 
-@Library('fedora-pipeline-library@candidate2') _
+@Library('fedora-pipeline-library@fedora-stable') _
 
 
 def pipelineMetadata = [

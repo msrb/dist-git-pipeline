@@ -30,7 +30,7 @@ spec:
   containers:
   - name: pipeline-agent
     # source: https://github.com/fedora-ci/jenkins-pipeline-library-agent-image
-    image: quay.io/fedoraci/pipeline-library-agent:3685422
+    image: quay.io/fedoraci/pipeline-library-agent:d41a11f
     tty: true
     alwaysPullImage: true
 """

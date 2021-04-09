@@ -46,7 +46,7 @@
             }
         },
         "f34": {
-            "compose": "Fedora-Rawhide",
+            "compose": "Fedora-34",
             "tmt_context": {
                 "koji-build": {
                     "distro": "fedora-34",

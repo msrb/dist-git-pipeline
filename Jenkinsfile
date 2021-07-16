@@ -185,9 +185,9 @@ pipeline {
     }
 
     post {
-        always {
-            // evaluateTestingFarmResults(testingFarmResult)
-        }
+        // always {
+        //     // evaluateTestingFarmResults(testingFarmResult)
+        // }
         aborted {
             script {
                 if (isTimeoutAborted(timeout: env.DEFAULT_PIPELINE_TIMEOUT_MINUTES, unit: 'MINUTES')) {

@@ -46,7 +46,7 @@ pipeline {
     agent none
 
     libraries {
-        lib("fedora-pipeline-library@aaf6d8e57293f68f3cc007dd63099762d2d91c02")
+        lib("fedora-pipeline-library@84c0987deb9c44238e63a1fa03a0d201d2e83248")
     }
 
     options {

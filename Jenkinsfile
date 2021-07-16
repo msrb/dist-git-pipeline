@@ -90,7 +90,7 @@ pipeline {
                         repoUrlAndRef = [url: TEST_REPO_URL.split('#')[0], ref: TEST_REPO_URL.split('#')[1]]
                     }
                     repoTests = repoHasTests(repoUrl: repoUrlAndRef['url'], ref: repoUrlAndRef['ref'])
-
+                    echo "repoTests: ${repoTests}"
                     if (!repoTests) {
                         abort("No dist-git tests (STI/FMF) were found in the repository ${repoUrlAndRef[0]}, skipping...")
                     }
